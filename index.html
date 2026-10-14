@@ -1,0 +1,93 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SCI Ambulation Descriptive Chart / แผนภูมิการเดินหลังบาดเจ็บไขสันหลัง</title>
+<style>
+body{font-family:system-ui,"Noto Sans Thai",sans-serif;max-width:1000px;margin:auto;padding:16px;color:#222}
+h1{font-size:1.4em}h2{border-bottom:2px solid #ddd;padding-bottom:4px}
+.warn{background:#fff3cd;border:1px solid #e0b000;padding:10px;border-radius:6px}
+.leg span{display:inline-block;margin-right:14px}.sw{width:12px;height:12px;display:inline-block;margin-right:4px;vertical-align:middle}
+.tree ul{list-style:none;padding-left:22px;border-left:2px solid #bbb;margin:4px 0}
+.node{display:inline-block;background:#f3f3f3;border:1px solid #999;border-radius:12px;padding:4px 10px;margin:4px 0}
+.term{background:#e6f2ff;border-color:#3a7bd5}
+table{border-collapse:collapse;font-size:.9em}td,th{border:1px solid #ccc;padding:3px 6px}
+small{color:#555}
+</style></head><body>
+<h1>ศักยภาพการเดินในชุมชน 12 เดือนหลังบาดเจ็บไขสันหลัง<br><small>Community ambulation potential 12 months after traumatic SCI (n = 1209)</small></h1>
+<div class="warn"><b>⚠ ข้อจำกัด / Disclaimer:</b> เป็นข้อมูลเชิงพรรณนาจากผลลัพธ์จริงในกลุ่มตัวอย่างเท่านั้น ไม่ใช่เครื่องมือทำนายทางคลินิก และไม่ใช้แทนการประเมินของแพทย์<br>
+Descriptive only — actual outcome proportions observed in the study cohort. This is NOT a clinical prediction tool and does not replace clinical judgement.</div>
+<p class="leg"><span><i class="sw" style="background:#d9534f"></i>D: พึ่งพาผู้อื่น/รถเข็น · Dependent</span><span><i class="sw" style="background:#f0ad4e"></i>L: เดินในชุมชนได้จำกัด · Limited community</span><span><i class="sw" style="background:#5cb85c"></i>I: เดินในชุมชนได้อิสระ · Independent community</span></p>
+<h2>ตามระดับ AIS / By AIS grade</h2><div id="ais"></div><small>แหล่งข้อมูล / Source: ข้อความผลการศึกษา หน้า 3 / Results text p.3</small>
+<h2>ตามฟีโนไทป์ (โหนดปลายของ classification tree) / By phenotype (terminal nodes)</h2><div id="ph"></div><small>Source: Figs 1–4 (pp.5–6)</small>
+<h2>แผนผังต้นไม้ / Tree view</h2><div id="tree" class="tree"></div>
+<h2>🏆 แผนผังสายการแข่งขัน: ต้นไม้ตัดสินใจ / Tournament-bracket decision tree</h2>
+<p><small>เลือกระดับ AIS แล้วเลือกแต่ละจุดแยก เส้นทางที่เลือกจะสว่างขึ้นเหมือนผู้ชนะเข้ารอบ · Pick AIS grade, then each split; the chosen path lights up like the winning side advancing. ข้อมูลเชิงพรรณนาเท่านั้น / Descriptive only.</small></p>
+<div id="br-ctrl"></div>
+<div style="overflow-x:auto"><svg id="br-svg" viewBox="0 0 1000 600" width="100%" style="min-width:760px;background:#0f1b2d;border-radius:8px"></svg></div>
+<div id="br-out"></div>
+<button id="br-reset">↺ เริ่มใหม่ / Reset</button>
+<style>
+#br-ctrl button,#br-reset{margin:4px;padding:6px 12px;border-radius:6px;border:1px solid #888;cursor:pointer;background:#fff}#br-ctrl button:hover{background:#fff4c2}
+#br-svg .edge{fill:none;stroke:#5a6b85;stroke-width:2.5;transition:opacity .5s}
+#br-svg .lit{stroke:#ffd23f;stroke-width:4.5;filter:drop-shadow(0 0 5px #ffd23f);animation:brdraw .9s ease forwards}
+@keyframes brdraw{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+#br-svg .nd rect{fill:#1d2f4a;stroke:#7d8fb0;stroke-width:1.5;transition:all .5s}
+#br-svg .nd text{fill:#e8eefc;font-size:11px}
+#br-svg .nd.on rect{fill:#3b2f00;stroke:#ffd23f;stroke-width:3;filter:drop-shadow(0 0 6px #ffd23f)}
+#br-svg .dim{opacity:.22}
+.brbar{height:24px;width:0;transition:width 1.2s ease;color:#fff;font-size:12px;line-height:24px;padding-left:4px;white-space:nowrap;overflow:hidden}
+</style>
+<script>
+window.addEventListener('DOMContentLoaded',function(){
+const svg=document.getElementById("br-svg"),ctrl=document.getElementById("br-ctrl"),out=document.getElementById("br-out"),NS="http://www.w3.org/2000/svg";
+const X=[10,210,440,700],BW=190,BH=48,RH=58,TOP=12;
+const TH={"LEMS":"LEMS (คะแนนกำลังกล้ามเนื้อขา)","Age":"อายุ / Age","Mechanism":"สาเหตุ / Mechanism"};
+const cTH=s=>s.replace("Falls/Others","หกล้ม/อื่นๆ Falls/Others").replace("MVA","อุบัติเหตุรถ MVA").replace(/^Age/,"อายุ Age");
+let nodes=[],edges=[],leaf=0,path=[],busy=false;
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+function lay(n,d,g,parent){const o={n,d,g,parent,kids:[]};nodes.push(o);
+ if(n.children&&n.children.length){n.children.forEach(c=>o.kids.push(lay(c,d+1,g,o)));o.y=(o.kids[0].y+o.kids[o.kids.length-1].y)/2}else{o.y=TOP+leaf++*RH}return o}
+function build(){svg.innerHTML="";nodes=[];edges=[];leaf=0;path=[];
+ const root={n:{n:DATA.trees.reduce((s,t)=>s+t.root.n,0)},d:0,kids:[],isRoot:true};
+ DATA.trees.forEach(t=>{const o=lay(Object.assign({},t.root,{cond:null}),1,t.grade,root);root.kids.push(o)});
+ root.y=(root.kids[0].y+root.kids[root.kids.length-1].y)/2;nodes.unshift(root);
+ svg.setAttribute("viewBox",`0 0 1000 ${TOP+leaf*RH}`);
+ nodes.forEach(o=>o.kids.forEach(k=>{const x1=X[o.d]+BW,y1=o.y+BH/2,x2=X[k.d],y2=k.y+BH/2,mx=(x1+x2)/2;
+  const p=el("path",{d:`M${x1},${y1} H${mx} V${y2} H${x2}`,class:"edge"});k.edge=p;edges.push(p)}));
+ nodes.forEach(o=>{const g=el("g",{class:"nd"});o.el=g;el("rect",{x:X[o.d],y:o.y,width:BW,height:BH,rx:8},g);
+  let l1,l2;if(o.isRoot){l1="ทุกคน / All";l2="n="+DATA.overall.n+" (text p.3)"}
+  else{const n=o.n;l1=o.d===1?`AIS ${o.g}`:cTH(n.cond.split(", ").pop());l2=`n=${n.n}${n.pct&&o.d>1?` (${n.pct}%)`:""} · D ${n.D}% L ${n.L}% I ${n.I}%`}
+  el("text",{x:X[o.d]+8,y:o.y+19,"font-weight":"bold"},g).textContent=l1;el("text",{x:X[o.d]+8,y:o.y+37},g).textContent=l2;
+  if(!o.kids.length&&!o.isRoot){g.querySelector("rect").setAttribute("stroke-dasharray","4 2")}});
+ out.innerHTML="";light(nodes[0]);ask(nodes[0])}
+function light(o){o.el.classList.add("on");if(o.edge){const L=o.edge.getTotalLength();o.edge.style.strokeDasharray=L;o.edge.style.setProperty("--len",L);o.edge.classList.add("lit");svg.appendChild(o.edge);svg.appendChild(o.el)}}
+function dimExcept(o){o.parent&&o.parent.kids.forEach(s=>{if(s!==o)(function dd(x){x.el.classList.add("dim");x.edge&&x.edge.classList.add("dim");x.kids.forEach(dd)})(s)})}
+function ask(o){if(!o.kids.length){return result(o)}
+ const head=o.isRoot?"เลือกระดับ AIS / Choose AIS grade":`จุดแยก / Split: ${TH[o.n.split]}`;
+ ctrl.innerHTML=`<b>${head}</b><br>`+o.kids.map((k,i)=>`<button data-i="${i}">${o.isRoot?"AIS "+k.g:cTH(k.n.cond.split(", ").pop())}</button>`).join("");
+ ctrl.querySelectorAll("button").forEach(b=>b.onclick=()=>{if(busy)return;busy=true;const k=o.kids[b.dataset.i];ctrl.innerHTML="";light(k);dimExcept(k);setTimeout(()=>{busy=false;ask(k)},950)})}
+function result(o){ctrl.innerHTML="<b>✅ ถึงปลายทางแล้ว / Reached terminal phenotype</b>";const n=o.n,g=o.g,t=DATA.trees.find(t=>t.grade===g);
+ const note=t.note?"ไม่มีการสร้างต้นไม้สำหรับ AIS A (ผู้ที่เดินได้จำกัด/อิสระ <5%) · No classification tree was built for AIS A (<5% limited/independent).":"";
+ const rows=[["D","พึ่งพา/Dependent","#d9534f"],["L","จำกัด/Limited","#f0ad4e"],["I","อิสระ/Independent","#5cb85c"]];
+ out.innerHTML=`<h3>AIS ${g}${n.cond?": "+cTH(n.cond):""} (n=${n.n})</h3>${note?`<p><small>${note}</small></p>`:""}`+rows.map(r=>`<div style="display:flex;align-items:center;margin:3px 0"><span style="width:150px">${r[1]}</span><div style="flex:1;background:#eee"><div class="brbar" data-w="${n[r[0]]}" style="background:${r[2]}">${n[r[0]]}%</div></div></div>`).join("")+`<p><small>ที่มา/Source: ${t.source||t.root.source}</small></p>`;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>out.querySelectorAll(".brbar").forEach(b=>b.style.width=b.dataset.w+"%")))}
+document.getElementById("br-reset").onclick=()=>{if(!busy)build()};build();
+});
+</script>
+<h2>ความคลาดเคลื่อนในบทความ / Notes on reported values</h2><ul id="amb"></ul>
+<h2>อ้างอิง / Citation</h2><p id="cite"></p>
+<script>
+const DATA = {"citation": "Dionne A, Richard-Denis A, Pelletier-Roy R, Phan P, Mputu Mputu P, Mac-Thiong J-M. Characterizing ambulation potential following acute traumatic spinal cord injury: a populational cohort study on 1209 patients. Spinal Cord. 2026. https://doi.org/10.1038/s41393-026-01281-3", "outcome": "Outdoor community ambulation at 12 months (SCIM-III item 14): D=dependent, L=limited community, I=independent community", "overall": {"n": 1209, "D": {"pct": 53.5, "n": 647}, "L": {"pct": 15.5, "n": 187}, "I": {"pct": 31.0, "n": 375}, "source": "p.3 Results text; Table 2 (p.3-4)"}, "ais": [{"grade": "A", "n": 426, "D": {"pct": 94, "n": 399}, "L": {"pct": 4.7, "n": 20}, "I": {"pct": 1.6, "n": 7}, "source": "p.3 Results text; Abstract; Fig.4 (p.6) shows 94/5/2"}, {"grade": "B", "n": 137, "D": {"pct": 72, "n": 99}, "L": {"pct": 16, "n": 22}, "I": {"pct": 12, "n": 16}, "source": "p.3 Results text; Fig.1 root (p.5)"}, {"grade": "C", "n": 207, "D": {"pct": 50, "n": 103}, "L": {"pct": 23, "n": 47}, "I": {"pct": 28, "n": 57}, "source": "p.3 Results text; Fig.2 root (p.5) shows I=27%"}, {"grade": "D", "n": 439, "D": {"pct": 11, "n": 46}, "L": {"pct": 24, "n": 98}, "I": {"pct": 65, "n": 295}, "source": "p.3 Results text (n=439); Fig.3 root (p.6) shows n=442, 10/22/67%; Table 2 shows 442"}], "trees": [{"grade": "A", "note": "No classification tree (<5% limited/independent); source p.4 text", "root": {"n": 426, "D": 94, "L": 5, "I": 2, "source": "Fig.4 (p.6)"}}, {"grade": "B", "source": "Fig.1 (p.5); Fig.4 (p.6)", "root": {"n": 137, "pct": 100, "D": 72, "L": 16, "I": 12, "split": "LEMS", "children": [{"cond": "LEMS <4", "n": 112, "pct": 82, "D": 81, "L": 9, "I": 10, "terminal": true}, {"cond": "LEMS ≥4", "n": 25, "pct": 18, "D": 32, "L": 48, "I": 20, "split": "Mechanism", "children": [{"cond": "LEMS ≥4, Falls/Others", "n": 13, "pct": 9, "D": 8, "L": 67, "I": 25, "terminal": true}, {"cond": "LEMS ≥4, MVA", "n": 12, "pct": 9, "D": 54, "L": 31, "I": 15, "terminal": true}]}]}}, {"grade": "C", "source": "Fig.2 (p.5); Fig.4 (p.6)", "root": {"n": 207, "pct": 100, "D": 50, "L": 23, "I": 27, "split": "LEMS", "children": [{"cond": "LEMS <4", "n": 56, "pct": 27, "D": 82, "L": 9, "I": 10, "terminal": true}, {"cond": "LEMS ≥4", "n": 151, "pct": 73, "D": 38, "L": 28, "I": 34, "split": "Age", "children": [{"cond": "LEMS ≥4, Age ≥51", "n": 93, "pct": 45, "D": 52, "L": 27, "I": 22, "terminal": true}, {"cond": "LEMS ≥4, Age <51", "n": 58, "pct": 28, "D": 16, "L": 29, "I": 55, "terminal": true}]}]}}, {"grade": "D", "source": "Fig.3 (p.6); Fig.4 (p.6)", "root": {"n": 442, "pct": 100, "D": 10, "L": 22, "I": 67, "split": "LEMS", "children": [{"cond": "LEMS <41", "n": 155, "pct": 35, "D": 38, "L": 28, "I": 34, "split": "Age", "children": [{"cond": "LEMS <41, Age ≥54", "n": 75, "pct": 17, "D": 24, "L": 47, "I": 29, "terminal": true}, {"cond": "LEMS <41, Age <54", "n": 80, "pct": 18, "D": 10, "L": 16, "I": 74, "terminal": true}]}, {"cond": "LEMS ≥41", "n": 287, "pct": 65, "D": 7, "L": 17, "I": 76, "terminal": true}]}}], "ambiguities": ["AIS D n: text p.3 = 439 (sums to 1209); Table 2 and Fig.3 = 442 (Table 2 AIS column sums to 1212).", "AIS D %: text 11/24/65% vs Fig.3 root 10/22/67%. Text counts 46/98/295 give 10.5/22.3/67.2% of 439, matching the figure better than the text's 24%/65%.", "AIS C independent: text 28% (57/207=27.5%) vs Fig.2 27%.", "AIS A: text 4.7%/1.6% vs Fig.4 rounded 5%/2%.", "Terminal-node percentages are figure values (rounded; may not sum to 100%); node-level outcome counts not reported.", "Terminal node 'pct' in trees = share of that AIS grade's sample, as printed in figures."]};
+const C={D:"#d9534f",L:"#f0ad4e",I:"#5cb85c"};
+function bars(rows){const W=900,rh=34,lw=330,bw=W-lw-10;let s=`<svg viewBox="0 0 ${W} ${rows.length*rh+10}" width="100%" role="img">`;
+rows.forEach((r,i)=>{let x=lw,y=i*rh+5;s+=`<text x="${lw-6}" y="${y+20}" text-anchor="end" font-size="13">${r.label}</text>`;
+const tot=r.D+r.L+r.I;["D","L","I"].forEach(k=>{const w=bw*r[k]/Math.max(tot,100);s+=`<rect x="${x}" y="${y}" width="${w}" height="26" fill="${C[k]}"><title>${k}: ${r[k]}%</title></rect>`;if(w>28)s+=`<text x="${x+w/2}" y="${y+18}" text-anchor="middle" font-size="12" fill="#fff">${r[k]}%</text>`;x+=w});});return s+"</svg>"}
+document.getElementById("ais").innerHTML=bars(DATA.ais.map(a=>({label:`AIS ${a.grade} (n=${a.n})`,D:a.D.pct,L:a.L.pct,I:a.I.pct})));
+const th={"LEMS":"LEMS","Age":"อายุ/Age","MVA":"อุบัติเหตุรถ/MVA","Falls/Others":"หกล้ม/อื่นๆ Falls/Others"};
+let terms=[];DATA.trees.forEach(t=>{if(!t.root.children){terms.push({label:`AIS ${t.grade} (n=${t.root.n})`,...t.root});return}
+(function walk(n){if(n.terminal)terms.push({label:`AIS ${t.grade}: ${n.cond} (n=${n.n})`,...n});(n.children||[]).forEach(walk)})(t.root)});
+document.getElementById("ph").innerHTML=bars(terms);
+function nodeHtml(n,g){const lab=(n.cond?n.cond.split(", ").pop()+" → ":"")+`n=${n.n}${n.pct?` (${n.pct}%)`:""} · D ${n.D}% · L ${n.L}% · I ${n.I}%`;
+let h=`<li><span class="node ${n.terminal||!n.children?"term":""}">${lab}</span>`;if(n.children)h+=`<div><small>แยกตาม / split by: <b>${th[n.split]||n.split}</b></small></div><ul>${n.children.map(c=>nodeHtml(c)).join("")}</ul>`;return h+"</li>"}
+document.getElementById("tree").innerHTML=DATA.trees.map(t=>`<h3>AIS ${t.grade}</h3>${t.note?`<small>${t.note}</small>`:""}<ul>${nodeHtml(t.root)}</ul><small>Source: ${t.source||t.root.source}</small>`).join("");
+document.getElementById("amb").innerHTML=DATA.ambiguities.map(a=>`<li>${a}</li>`).join("");
+document.getElementById("cite").textContent=DATA.citation;
+</script></body></html>

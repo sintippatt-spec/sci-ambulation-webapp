@@ -1,0 +1,37 @@
+{
+ "citation": "Dionne A, Richard-Denis A, Pelletier-Roy R, Phan P, Mputu Mputu P, Mac-Thiong J-M. Characterizing ambulation potential following acute traumatic spinal cord injury: a populational cohort study on 1209 patients. Spinal Cord. 2026. https://doi.org/10.1038/s41393-026-01281-3",
+ "outcome": "Outdoor community ambulation at 12 months (SCIM-III item 14): D=dependent, L=limited community, I=independent community",
+ "overall": {"n":1209,"D":{"pct":53.5,"n":647},"L":{"pct":15.5,"n":187},"I":{"pct":31.0,"n":375},"source":"p.3 Results text; Table 2 (p.3-4)"},
+ "ais": [
+  {"grade":"A","n":426,"D":{"pct":94,"n":399},"L":{"pct":4.7,"n":20},"I":{"pct":1.6,"n":7},"source":"p.3 Results text; Abstract; Fig.4 (p.6) shows 94/5/2"},
+  {"grade":"B","n":137,"D":{"pct":72,"n":99},"L":{"pct":16,"n":22},"I":{"pct":12,"n":16},"source":"p.3 Results text; Fig.1 root (p.5)"},
+  {"grade":"C","n":207,"D":{"pct":50,"n":103},"L":{"pct":23,"n":47},"I":{"pct":28,"n":57},"source":"p.3 Results text; Fig.2 root (p.5) shows I=27%"},
+  {"grade":"D","n":439,"D":{"pct":11,"n":46},"L":{"pct":24,"n":98},"I":{"pct":65,"n":295},"source":"p.3 Results text (n=439); Fig.3 root (p.6) shows n=442, 10/22/67%; Table 2 shows 442"}
+ ],
+ "trees": [
+  {"grade":"A","note":"No classification tree (<5% limited/independent); source p.4 text","root":{"n":426,"D":94,"L":5,"I":2,"source":"Fig.4 (p.6)"}},
+  {"grade":"B","source":"Fig.1 (p.5); Fig.4 (p.6)","root":{"n":137,"pct":100,"D":72,"L":16,"I":12,"split":"LEMS","children":[
+    {"cond":"LEMS <4","n":112,"pct":82,"D":81,"L":9,"I":10,"terminal":true},
+    {"cond":"LEMS ≥4","n":25,"pct":18,"D":32,"L":48,"I":20,"split":"Mechanism","children":[
+      {"cond":"LEMS ≥4, Falls/Others","n":13,"pct":9,"D":8,"L":67,"I":25,"terminal":true},
+      {"cond":"LEMS ≥4, MVA","n":12,"pct":9,"D":54,"L":31,"I":15,"terminal":true}]}]}},
+  {"grade":"C","source":"Fig.2 (p.5); Fig.4 (p.6)","root":{"n":207,"pct":100,"D":50,"L":23,"I":27,"split":"LEMS","children":[
+    {"cond":"LEMS <4","n":56,"pct":27,"D":82,"L":9,"I":10,"terminal":true},
+    {"cond":"LEMS ≥4","n":151,"pct":73,"D":38,"L":28,"I":34,"split":"Age","children":[
+      {"cond":"LEMS ≥4, Age ≥51","n":93,"pct":45,"D":52,"L":27,"I":22,"terminal":true},
+      {"cond":"LEMS ≥4, Age <51","n":58,"pct":28,"D":16,"L":29,"I":55,"terminal":true}]}]}},
+  {"grade":"D","source":"Fig.3 (p.6); Fig.4 (p.6)","root":{"n":442,"pct":100,"D":10,"L":22,"I":67,"split":"LEMS","children":[
+    {"cond":"LEMS <41","n":155,"pct":35,"D":38,"L":28,"I":34,"split":"Age","children":[
+      {"cond":"LEMS <41, Age ≥54","n":75,"pct":17,"D":24,"L":47,"I":29,"terminal":true},
+      {"cond":"LEMS <41, Age <54","n":80,"pct":18,"D":10,"L":16,"I":74,"terminal":true}]},
+    {"cond":"LEMS ≥41","n":287,"pct":65,"D":7,"L":17,"I":76,"terminal":true}]}}
+ ],
+ "ambiguities": [
+  "AIS D n: text p.3 = 439 (sums to 1209); Table 2 and Fig.3 = 442 (Table 2 AIS column sums to 1212).",
+  "AIS D %: text 11/24/65% vs Fig.3 root 10/22/67%. Text counts 46/98/295 give 10.5/22.3/67.2% of 439, matching the figure better than the text's 24%/65%.",
+  "AIS C independent: text 28% (57/207=27.5%) vs Fig.2 27%.",
+  "AIS A: text 4.7%/1.6% vs Fig.4 rounded 5%/2%.",
+  "Terminal-node percentages are figure values (rounded; may not sum to 100%); node-level outcome counts not reported.",
+  "Terminal node 'pct' in trees = share of that AIS grade's sample, as printed in figures."
+ ]
+}
