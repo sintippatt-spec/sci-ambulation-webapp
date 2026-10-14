@@ -21,7 +21,7 @@ Descriptive only — actual outcome proportions observed in the study cohort. Th
 <h2>🏆 แผนผังสายการแข่งขัน: ต้นไม้ตัดสินใจ / Tournament-bracket decision tree</h2>
 <p><small>เลือกระดับ AIS แล้วเลือกแต่ละจุดแยก เส้นทางที่เลือกจะสว่างขึ้นเหมือนผู้ชนะเข้ารอบ · Pick AIS grade, then each split; the chosen path lights up like the winning side advancing. ข้อมูลเชิงพรรณนาเท่านั้น / Descriptive only.</small></p>
 <div id="br-ctrl"></div>
-<div style="overflow-x:auto"><svg id="br-svg" viewBox="0 0 1000 600" width="100%" style="min-width:760px;background:#0f1b2d;border-radius:8px"></svg></div>
+<div id="br-wrap"><svg id="br-svg" viewBox="0 0 1000 600" width="100%" style="background:#0f1b2d;border-radius:8px;display:block"></svg></div>
 <div id="br-out"></div>
 <button id="br-reset">↺ เริ่มใหม่ / Reset</button>
 <style>
@@ -30,7 +30,9 @@ Descriptive only — actual outcome proportions observed in the study cohort. Th
 #br-svg .lit{stroke:#ffd23f;stroke-width:4.5;filter:drop-shadow(0 0 5px #ffd23f);animation:brdraw .9s ease forwards}
 @keyframes brdraw{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
 #br-svg .nd rect{fill:#1d2f4a;stroke:#7d8fb0;stroke-width:1.5;transition:all .5s}
-#br-svg .nd text{fill:#e8eefc;font-size:11px}
+#br-svg .nd text{fill:#e8eefc;font-size:10px}
+#br-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:600px){body{padding:8px}#br-ctrl button{padding:10px 14px;font-size:15px}}
 #br-svg .nd.on rect{fill:#3b2f00;stroke:#ffd23f;stroke-width:3;filter:drop-shadow(0 0 6px #ffd23f)}
 #br-svg .dim{opacity:.22}
 .brbar{height:24px;width:0;transition:width 1.2s ease;color:#fff;font-size:12px;line-height:24px;padding-left:4px;white-space:nowrap;overflow:hidden}
@@ -38,27 +40,27 @@ Descriptive only — actual outcome proportions observed in the study cohort. Th
 <script>
 window.addEventListener('DOMContentLoaded',function(){
 const svg=document.getElementById("br-svg"),ctrl=document.getElementById("br-ctrl"),out=document.getElementById("br-out"),NS="http://www.w3.org/2000/svg";
-const X=[10,210,440,700],BW=190,BH=48,RH=58,TOP=12;
+const BW=118,BH=58,CW=128,RH=118,TOP=10,LEFT=6;
 const TH={"LEMS":"LEMS (คะแนนกำลังกล้ามเนื้อขา)","Age":"อายุ / Age","Mechanism":"สาเหตุ / Mechanism"};
 const cTH=s=>s.replace("Falls/Others","หกล้ม/อื่นๆ Falls/Others").replace("MVA","อุบัติเหตุรถ MVA").replace(/^Age/,"อายุ Age");
 let nodes=[],edges=[],leaf=0,path=[],busy=false;
 function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
 function lay(n,d,g,parent){const o={n,d,g,parent,kids:[]};nodes.push(o);
- if(n.children&&n.children.length){n.children.forEach(c=>o.kids.push(lay(c,d+1,g,o)));o.y=(o.kids[0].y+o.kids[o.kids.length-1].y)/2}else{o.y=TOP+leaf++*RH}return o}
+ if(n.children&&n.children.length){n.children.forEach(c=>o.kids.push(lay(c,d+1,g,o)));o.x=(o.kids[0].x+o.kids[o.kids.length-1].x)/2}else{o.x=LEFT+leaf++*CW}o.y=TOP+d*RH;return o}
 function build(){svg.innerHTML="";nodes=[];edges=[];leaf=0;path=[];
  const root={n:{n:DATA.trees.reduce((s,t)=>s+t.root.n,0)},d:0,kids:[],isRoot:true};
  DATA.trees.forEach(t=>{const o=lay(Object.assign({},t.root,{cond:null}),1,t.grade,root);root.kids.push(o)});
- root.y=(root.kids[0].y+root.kids[root.kids.length-1].y)/2;nodes.unshift(root);
- svg.setAttribute("viewBox",`0 0 1000 ${TOP+leaf*RH}`);
- nodes.forEach(o=>o.kids.forEach(k=>{const x1=X[o.d]+BW,y1=o.y+BH/2,x2=X[k.d],y2=k.y+BH/2,mx=(x1+x2)/2;
-  const p=el("path",{d:`M${x1},${y1} H${mx} V${y2} H${x2}`,class:"edge"});k.edge=p;edges.push(p)}));
- nodes.forEach(o=>{const g=el("g",{class:"nd"});o.el=g;el("rect",{x:X[o.d],y:o.y,width:BW,height:BH,rx:8},g);
-  let l1,l2;if(o.isRoot){l1="ทุกคน / All";l2="n="+DATA.overall.n+" (text p.3)"}
-  else{const n=o.n;l1=o.d===1?`AIS ${o.g}`:cTH(n.cond.split(", ").pop());l2=`n=${n.n}${n.pct&&o.d>1?` (${n.pct}%)`:""} · D ${n.D}% L ${n.L}% I ${n.I}%`}
-  el("text",{x:X[o.d]+8,y:o.y+19,"font-weight":"bold"},g).textContent=l1;el("text",{x:X[o.d]+8,y:o.y+37},g).textContent=l2;
+ root.x=(root.kids[0].x+root.kids[root.kids.length-1].x)/2;root.y=TOP;nodes.unshift(root);
+ const W=LEFT*2+leaf*CW-(CW-BW),H=TOP*2+3*RH+BH;svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.style.minWidth=Math.round(W*0.78)+"px";
+ nodes.forEach(o=>o.kids.forEach(k=>{const x1=o.x+BW/2,y1=o.y+BH,x2=k.x+BW/2,y2=k.y,my=(y1+y2)/2;
+  const p=el("path",{d:`M${x1},${y1} V${my} H${x2} V${y2}`,class:"edge"});k.edge=p;edges.push(p)}));
+ nodes.forEach(o=>{const g=el("g",{class:"nd"});o.el=g;el("rect",{x:o.x,y:o.y,width:BW,height:BH,rx:8},g);
+  let l1,l2,l3;if(o.isRoot){l1="ทุกคน / All";l2="n="+DATA.overall.n;l3="(text p.3)"}
+  else{const n=o.n;l1=o.d===1?`AIS ${o.g}`:cTH(n.cond.split(", ").pop());l2=`n=${n.n}${n.pct&&o.d>1?` (${n.pct}%)`:""}`;l3=`D ${n.D}% L ${n.L}% I ${n.I}%`}
+  const cx=o.x+BW/2;const t1=el("text",{x:cx,y:o.y+17,"font-weight":"bold","text-anchor":"middle"},g);t1.textContent=l1;if(l1.length>16)t1.style.fontSize="8.5px";el("text",{x:cx,y:o.y+34,"text-anchor":"middle"},g).textContent=l2;el("text",{x:cx,y:o.y+50,"text-anchor":"middle"},g).textContent=l3;
   if(!o.kids.length&&!o.isRoot){g.querySelector("rect").setAttribute("stroke-dasharray","4 2")}});
  out.innerHTML="";light(nodes[0]);ask(nodes[0])}
-function light(o){o.el.classList.add("on");if(o.edge){const L=o.edge.getTotalLength();o.edge.style.strokeDasharray=L;o.edge.style.setProperty("--len",L);o.edge.classList.add("lit");svg.appendChild(o.edge);svg.appendChild(o.el)}}
+function light(o){o.el.classList.add("on");const wr=document.getElementById("br-wrap"),vb=svg.viewBox.baseVal.width;if(wr.scrollWidth>wr.clientWidth&&o.x!==undefined)wr.scrollTo({left:(o.x+BW/2)/vb*svg.clientWidth-wr.clientWidth/2,behavior:"smooth"});if(o.edge){const L=o.edge.getTotalLength();o.edge.style.strokeDasharray=L;o.edge.style.setProperty("--len",L);o.edge.classList.add("lit");svg.appendChild(o.edge);svg.appendChild(o.el)}}
 function dimExcept(o){o.parent&&o.parent.kids.forEach(s=>{if(s!==o)(function dd(x){x.el.classList.add("dim");x.edge&&x.edge.classList.add("dim");x.kids.forEach(dd)})(s)})}
 function ask(o){if(!o.kids.length){return result(o)}
  const head=o.isRoot?"เลือกระดับ AIS / Choose AIS grade":`จุดแยก / Split: ${TH[o.n.split]}`;
